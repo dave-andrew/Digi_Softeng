@@ -1,0 +1,86 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'com.diffplug.spotless' version '6.23.2'
+}
+
+group 'net.slc.dv'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+configurations {
+    extraLibs
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+application {
+    mainModule = 'net.slc.dv'
+    mainClass = 'net.slc.dv.Main'
+}
+
+javafx {
+    version = '17.0.9'
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.web', 'javafx.media']
+}
+
+spotless {
+    java {
+        palantirJavaFormat()
+        removeUnusedImports('cleanthat-javaparser-unnecessaryimport')
+    }
+}
+
+dependencies {
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    implementation('org.controlsfx:controlsfx:11.1.1')
+    implementation('com.dlsc.formsfx:formsfx-core:11.5.0') {
+        exclude(group: 'org.openjfx')
+    }
+    implementation('org.kordamp.ikonli:ikonli-javafx:12.3.1')
+    implementation('org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0')
+
+    // javafx
+    implementation group: 'org.openjfx', name: 'javafx', version: '17.0.9'
+    implementation group: 'org.openjfx', name: 'javafx-base', version: '17.0.9', classifier: 'win'
+    implementation group: 'org.openjfx', name: 'javafx-base', version: '17.0.9', classifier: 'mac'
+    implementation group: 'org.openjfx', name: 'javafx-controls', version: '17.0.9', classifier: 'win'
+    implementation group: 'org.openjfx', name: 'javafx-controls', version: '17.0.9', classifier: 'mac'
+    implementation group: 'org.openjfx', name: 'javafx-graphics', version: '17.0.9', classifier: 'win'
+    implementation group: 'org.openjfx', name: 'javafx-graphics', version: '17.0.9', classifier: 'mac'
+
+    // mysql java connector
+    extraLibs 'mysql:mysql-connector-java:8.0.33'
+
+    // lombok
+    implementation 'org.projectlombok:lombok:1.18.30'
+
+    // jetbrains annotations
+    implementation 'org.jetbrains:annotations:24.1.0'
+
+    configurations.compileOnly.extendsFrom(configurations.extraLibs)
+}
+
+java {
+    modularity.inferModulePath.set(true)
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'net.slc.dv.Main'
+        attributes 'Automatic-Module-Name': moduleName
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
